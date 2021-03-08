@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-
 const postSchema = Schema(
   {
     comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
-    reactions: { type: Array },
+    reactions: [{ type: Schema.Types.ObjectId, ref: "Reaction" }],
     body: { type: String, unique: false, default: "" },
     owner: {
       ref: "User",

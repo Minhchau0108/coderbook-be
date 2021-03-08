@@ -9,7 +9,7 @@ const User = require("../models/User");
 const userController = {};
 
 userController.create = catchAsync(async (req, res, next) => {
-  let { email, password } = req.body;
+  let { name, email, password, birthDate, gender } = req.body;
   let user = await User.findOne({ email });
 
   if (user)
@@ -18,8 +18,11 @@ userController.create = catchAsync(async (req, res, next) => {
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
   user = await User.create({
+    name,
     email,
     password,
+    birthDate,
+    gender,
   });
   const accessToken = await user.generateToken();
   return sendResponse(
@@ -30,7 +33,7 @@ userController.create = catchAsync(async (req, res, next) => {
     null,
     "Create user successful"
   );
-})
+});
 
 userController.read = async (req, res) => {
   const user = await User.findOne({ _id: req.params.id });
@@ -66,6 +69,15 @@ userController.destroy = async (req, res) => {
       res.json(user);
     }
   });
+};
+userController.getCurrentUser = async (req, res) => {
+  console.log("req.userId", req.userId);
+  const user = await User.findById(req.userId);
+  if (!user) {
+    res.status(404).json({ message: "User not Found" });
+  } else {
+    res.json(user);
+  }
 };
 
 module.exports = userController;

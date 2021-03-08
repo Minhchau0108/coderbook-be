@@ -4,6 +4,7 @@ const { AppError } = require("../helpers/utils.helper");
 const authMiddleware = {};
 
 authMiddleware.loginRequired = (req, res, next) => {
+  console.log("running middleware");
   try {
     const tokenString = req.headers.authorization;
     if (!tokenString)
@@ -20,6 +21,7 @@ authMiddleware.loginRequired = (req, res, next) => {
         }
       }
       req.userId = payload._id;
+      console.log("userID authentication", req.userId);
     });
     next();
   } catch (error) {

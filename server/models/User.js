@@ -9,7 +9,8 @@ const userSchema = Schema(
     name: { type: String, required: false, unique: false, default: "" },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: false, unique: false },
-    avatarUrl: { type: String, required: false, default: "" },
+    birthDate: { type: Date, required: false },
+    gender: { type: String, required: false, default: "" },
     googleId: { type: String, required: false, default: "" },
     facebookId: { type: String, required: false, default: "" },
   },
@@ -42,12 +43,11 @@ userSchema.statics.findOrCreate = function findOrCreate(profile, cb) {
 
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
-  delete obj._id;
   delete obj.__v;
   delete obj.googleId;
   delete obj.password;
   delete obj.createdAt;
-  delete obj.updatedAt;  
+  delete obj.updatedAt;
   delete obj.facebookId;
   return obj;
 };
