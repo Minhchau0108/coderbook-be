@@ -3,8 +3,9 @@ import * as types from "../constants/post.constants";
 const initialState = {
   posts: [],
   totalPageNum: 1,
-  selectedBlog: null,
+  selectedPost: null,
   loading: false,
+  currentPage: 1,
 };
 
 const postReducer = (state = initialState, action) => {
@@ -18,21 +19,29 @@ const postReducer = (state = initialState, action) => {
       return { ...state, loading: true };
 
     case types.POST_REQUEST_SUCCESS:
+      let updatedPosts;
+      if (payload.currentPage === 1) {
+        updatedPosts = [...payload.posts.posts];
+      }
+      if (payload.currentPage !== 1) {
+        updatedPosts = [...state.posts, ...payload.posts.posts];
+      }
       return {
         ...state,
         loading: false,
-        posts: payload.posts,
-        totalPageNum: payload.totalPages,
+        posts: updatedPosts,
+        currentPage: payload.currentPage,
+        totalPageNum: payload.posts.totalPages,
       };
 
     case types.GET_SINGLE_POST_REQUEST_SUCCESS:
-      return { ...state, selectedBlog: payload, loading: false };
+      return { ...state, selectedPost: payload, loading: false };
 
     case types.UPDATE_POST_SUCCESS:
       return {
         ...state,
         loading: false,
-        selectedBlog: payload,
+        selectedPost: payload,
       };
 
     case types.CREATE_POST_FAILURE:
@@ -49,46 +58,68 @@ const postReducer = (state = initialState, action) => {
       };
 
     case types.DELETE_POST_SUCCESS:
+      console.log("payload delte here", payload._id);
+      console.log(
+        "retunr",
+        state.posts.filter((p) => p._id !== payload._id)
+      );
       return {
         ...state,
         loading: false,
-        selectedBlog: {},
+        posts: state.posts.filter((p) => p._id !== payload._id),
       };
 
     case types.SEND_REACTION_REQUEST:
     case types.CREATE_REVIEW_REQUEST:
       return { ...state, submitLoading: true };
 
+    case types.CREATE_COMMENT_SUCCESS:
+      console.log("create comment here");
+      console.log("payload", payload);
+      return {
+        ...state,
+        loading: false,
+        posts: [
+          ...state.posts.map((p) => {
+            if (p._id !== payload._id) return p;
+            return { ...p, comments: payload.comments };
+          }),
+        ],
+      };
     case types.CREATE_REVIEW_SUCCESS:
       return {
         ...state,
         submitLoading: false,
-        selectedBlog: {
-          ...state.selectedBlog,
-          reviews: [...state.selectedBlog.reviews, payload],
+        selectedPost: {
+          ...state.selectedPost,
+          comments: [...state.selectedPost.comments, payload],
         },
       };
 
     case types.POST_REACTION_SUCCESS:
+      console.log("payload", payload);
       return {
         ...state,
-        submitLoading: false,
-        selectedBlog: { ...state.selectedBlog, reactions: payload },
+        loading: false,
+        posts: [
+          ...state.posts.map((p) => {
+            if (p._id !== payload._id) return p;
+            return { ...p, reactions: payload.reactions };
+          }),
+        ],
       };
 
-    case types.REVIEW_REACTION_SUCCESS:
+    case types.COMMENT_REACTION_SUCCESS:
+      console.log("payload", payload);
       return {
         ...state,
-        selectedBlog: {
-          ...state.selectedBlog,
-          reviews: [
-            ...state.selectedBlog.reviews.map((review) => {
-              if (review._id !== payload.reviewId) return review;
-              return { ...review, reactions: payload.reactions };
-            }),
-          ],
-        },
-        submitLoading: false,
+        loading: false,
+        posts: [
+          ...state.posts.map((p) => {
+            if (p._id !== payload._id) return p;
+            return { ...p, comments: payload.comments };
+          }),
+        ],
       };
 
     case types.SEND_REACTION_FAILURE:

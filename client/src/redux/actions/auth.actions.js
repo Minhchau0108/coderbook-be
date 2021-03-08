@@ -19,37 +19,47 @@ const loginRequest = (email, password) => async (dispatch) => {
   }
 };
 
-const loginFacebookRequest = (access_token) => async (dispatch) => {
+const loginFacebookRequest = (user) => async (dispatch) => {
   dispatch({ type: types.LOGIN_FACEBOOK_REQUEST, payload: null });
   try {
-    const res = await api.post("/auth/login/facebook", { access_token });
-    const name = res.data.data.user.name;
+    const access_token = user.accessToken;
+    const res = await api.post("/auth/login/facebook", { user, access_token });
+    const name = res.data.user.name;
     toast.success(`Welcome ${name}`);
-    dispatch({ type: types.LOGIN_FACEBOOK_SUCCESS, payload: res.data.data });
+    dispatch({ type: types.LOGIN_FACEBOOK_SUCCESS, payload: res.data });
     api.defaults.headers.common["authorization"] =
-      "Bearer " + res.data.data.accessToken;
+      "Bearer " + res.data.accessToken;
   } catch (error) {
     dispatch({ type: types.LOGIN_FACEBOOK_FAILURE, payload: error });
   }
 };
 
-const loginGoogleRequest = (access_token) => async (dispatch) => {
+const loginGoogleRequest = (user) => async (dispatch) => {
   dispatch({ type: types.LOGIN_GOOGLE_REQUEST, payload: null });
   try {
-    const res = await api.post("/auth/login/google", { access_token });
-    const name = res.data.data.user.name;
+    const access_token = user.accessToken;
+    const res = await api.post("/auth/login/google", { user, access_token });
+    const name = res.data.user.name;
     toast.success(`Welcome ${name}`);
-    dispatch({ type: types.LOGIN_GOOGLE_SUCCESS, payload: res.data.data });
+    dispatch({ type: types.LOGIN_GOOGLE_SUCCESS, payload: res.data });
     api.defaults.headers.common["authorization"] =
-      "Bearer " + res.data.data.accessToken;
+      "Bearer " + res.data.accessToken;
   } catch (error) {
     dispatch({ type: types.LOGIN_GOOGLE_FAILURE, payload: error });
   }
 };
-const register = (name, email, password, avatarUrl) => async (dispatch) => {
+const register = (name, email, password, birthDate, gender) => async (
+  dispatch
+) => {
   dispatch({ type: types.REGISTER_REQUEST, payload: null });
   try {
-    const res = await api.post("/users", { name, email, password, avatarUrl });
+    const res = await api.post("/users", {
+      name,
+      email,
+      password,
+      birthDate,
+      gender,
+    });
     dispatch({ type: types.REGISTER_SUCCESS, payload: res.data.data });
     dispatch(routeActions.redirect("/auth"));
     toast.success(`Thank you for your registration, ${name}!`);
@@ -91,13 +101,14 @@ const getCurrentUser = (accessToken) => async (dispatch) => {
   }
   try {
     const res = await api.get("/users/me");
-    dispatch({ type: types.GET_CURRENT_USER_SUCCESS, payload: res.data.data });
+    dispatch({ type: types.GET_CURRENT_USER_SUCCESS, payload: res.data });
   } catch (error) {
     dispatch({ type: types.GET_CURRENT_USER_FAILURE, payload: error });
   }
 };
 
 const logout = () => (dispatch) => {
+  console.log("runing logout");
   delete api.defaults.headers.common["authorization"];
   localStorage.setItem("accessToken", "");
   dispatch({ type: types.LOGOUT, payload: null });

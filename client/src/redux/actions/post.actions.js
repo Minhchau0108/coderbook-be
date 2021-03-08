@@ -5,10 +5,10 @@ import { toast } from "react-toastify";
 
 const postsRequest = (
   pageNum = 1,
-  limit = 10,
+  limit = 2,
   query = null,
   ownerId = null,
-  sortBy = null
+  sortBy = { key: "createdAt", ascending: -1 }
 ) => async (dispatch) => {
   dispatch({ type: types.POST_REQUEST, payload: null });
   try {
@@ -28,7 +28,7 @@ const postsRequest = (
     );
     dispatch({
       type: types.POST_REQUEST_SUCCESS,
-      payload: res.data.data,
+      payload: { currentPage: pageNum, posts: res.data.data },
     });
   } catch (error) {
     dispatch({ type: types.POST_REQUEST_FAILURE, payload: error });
@@ -85,6 +85,7 @@ const createPost = (body, images) => async (dispatch) => {
       type: types.CREATE_POST_SUCCESS,
     });
     dispatch(routeActions.redirect("__GO_BACK__"));
+    dispatch(postActions.postsRequest(1));
     toast.success("Post created");
   } catch (error) {
     dispatch({ type: types.CREATE_POST_FAILURE, payload: error });
@@ -111,6 +112,7 @@ const updatePost = (postId, title, content, images) => async (dispatch) => {
 };
 
 const deletePost = (postId) => async (dispatch) => {
+  console.log("delepost", postId);
   dispatch({ type: types.DELETE_POST_REQUEST, payload: null });
   try {
     const res = await api.delete(`/posts/${postId}`);
@@ -126,27 +128,45 @@ const deletePost = (postId) => async (dispatch) => {
   }
 };
 
-const createPostReaction = (targetType, targetId, emoji) => async (dispatch) => {
+const createPostReaction = (targetType, targetId, emoji) => async (
+  dispatch
+) => {
+  console.log("targetType", targetType);
+  console.log("targetId", targetId);
+  console.log("emoji", emoji);
   dispatch({ type: types.SEND_REACTION_REQUEST, payload: null });
   try {
     const res = await api.post(`/reactions`, { targetType, targetId, emoji });
-    if (targetType === "Blog") {
+    if (targetType === "Post") {
       dispatch({
-        payload: res.data.data,
+        payload: res.data,
         type: types.POST_REACTION_SUCCESS,
       });
     }
-    if (targetType === "Review") {
+    if (targetType === "Comment") {
       dispatch({
-        type: types.REVIEW_REACTION_SUCCESS,
-        payload: { reactions: res.data.data, reviewId: targetId },
+        type: types.COMMENT_REACTION_SUCCESS,
+        payload: res.data,
       });
     }
   } catch (error) {
     dispatch({ type: types.SEND_REACTION_FAILURE, payload: error });
   }
 };
-
+const createComment = (postId, body) => async (dispatch) => {
+  dispatch({ type: types.CREATE_COMMENT, payload: null });
+  try {
+    const res = await api.post(`/posts/${postId}/comments`, {
+      body,
+    });
+    dispatch({
+      type: types.CREATE_COMMENT_SUCCESS,
+      payload: res.data.data.post,
+    });
+  } catch (error) {
+    dispatch({ type: types.CREATE_COMMENT_FAILURE, payload: error });
+  }
+};
 export const postActions = {
   postsRequest,
   getSinglePost,
@@ -155,4 +175,5 @@ export const postActions = {
   updatePost,
   deletePost,
   createPostReaction,
+  createComment,
 };

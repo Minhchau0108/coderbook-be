@@ -7,7 +7,7 @@ span {
 }
 
 .posts-container {
-  height: 100vh;
+  /* height: 100vh; */
   padding-top: 1em;
   overflow-y: scroll;
 }
